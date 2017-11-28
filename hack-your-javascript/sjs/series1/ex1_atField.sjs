@@ -17,7 +17,7 @@ var myOtherObj = {
 	set : function(val) {
 		@x = val;
 	}
-};
+}; 
 myOtherObj.set(3);
 
 console.log("this.x = " + @x + ", MyObj.x = " + myObj.x + ", MyOtherObj.x = " + myOtherObj.x);

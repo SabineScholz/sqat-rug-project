@@ -3,8 +3,8 @@ module sqat::series1::A1_SLOC
 import IO;
 import ParseTree;
 import String;
+import List;
 import util::FileSystem;
-import sqat::series1::Comments;
 
 /* 
 
@@ -37,9 +37,84 @@ Bonus:
 
 alias SLOC = map[loc file, int sloc];
 
-SLOC sloc(loc project) {
-  SLOC result = ();
-  // implement here
-  return result;
-}             
-             
+int main() {
+	loc jpacman = |project://jpacman-framework/src|;
+	fs = crawl(jpacman);
+	return sloc(jpacman);
+}
+
+
+
+int sloc(loc project) {
+  n = 0;
+  for (file <- files(project), file.extension == "java") {
+  	println(file);
+  	n += 1;
+  }
+  return n;
+}   
+
+void main2() {
+	xs = {1,2,3,4}; //set 
+	x = {<1,2>, <2,3>};
+}
+
+int countDirs(FileSystem fs) {
+  switch(fs) {
+    case directory(loc l, set[FileSystem] children): {
+      int countSubdirs = 0;
+      for (FileSystem child <- children) {
+       countSubdirs += countDirs(child);
+      }
+      return countSubdirs + 1;
+      }
+     case file(_): 
+     	return 0;
+     	}
+
+}
+
+int countDirs2(FileSystem fs) {
+  int count = 0;
+  visit(fs) {
+    case directory(loc l, set[FileSystem] children):
+      count += 1;
+     }
+	return count;
+}
+
+
+
+int countDirs3(FileSystem fs) = ( 0 | it + 1 | /directory(_, _) := fs );
+
+int countDirs4(FileSystem fs) {
+	int count = 0;
+	for(/directory(_,_) := fs) {
+		count += 1;
+	}
+	return count;
+}
+
+
+          
+
+int countSLOC(loc file) {
+	n = countTotalLines(file);
+	n -= countBlankLines(file);
+	n -= countCommentLines(file);
+	return n;
+}
+
+int countTotalLines(loc file) {
+	return 0;
+}
+
+
+int countBlankLines(loc file) {
+	return 0;
+}
+
+
+int countCommentLines(loc file) {
+	return 0;
+}

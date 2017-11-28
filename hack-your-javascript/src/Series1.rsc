@@ -38,7 +38,7 @@ test bool testDebug()
 /*
  * 1. At fields
  */ 
-Expression desugar((Expression)`@<Id x>`) = /* you should replace this */ dummyExp();
+Expression desugar((Expression)`@<Id x>`) = (Expression) `this.<Id x>`;
 
 test bool testAtField() 
   = desugar((Expression)`@name`) 
@@ -48,8 +48,8 @@ test bool testAtField()
 /*
  * 2. Twitter search expressions
  */
-Expression desugar((Expression)`@(<{Expression ","}* es>)`) 
-  = /* you should replace this */ dummyExp();
+Expression desugar((Expression)`@(<{Expression ","}* es>)`) = (Expression) `searchAt(<{Expression ","}* es>)`;
+  
 
 Expression desugar((Expression)`#(<{Expression ","}* es>)`)
   = /* you should replace this */ dummyExp();  
@@ -62,7 +62,9 @@ test bool testTwitter()
  * 3. Don't statement
  */
 
-Statement desugar((Statement)`dont <Statement _>`) = /* you should replace this */ dummyStat();
+Statement desugar((Statement)`dont <Statement _>`) {
+ return (Statement) `;`;
+} 
 
 test bool testDont()
   = desugar((Statement)`dont if (x == 3) print(x);`) 
@@ -72,9 +74,7 @@ test bool testDont()
  * 4. Todo statement
  */
 
-Statement desugar((Statement)`todo <String s>;`) 
-  = /* you should replace this */ dummyStat(); 
- 
+Statement desugar((Statement)`todo <String s>;`) = (Statement) `console.log("TODO: "+ <String s>);`;
  
 test bool testTodo()
   = desugar((Statement)`todo "FIXME";`) 
@@ -84,9 +84,9 @@ test bool testTodo()
  * 5. Unless statement
  */
  
-Statement desugar((Statement)`unless (<Expression cond>) <Statement body>`)
-  = /* you should replace this */ dummyStat();
- 
+Statement desugar((Statement) `unless (<Expression cond>) <Statement body>`) {
+	return (Statement) `if (!(<Expression cond>)) <Statement body>`;
+}
 
 test bool testUnless()
   = desugar((Statement)`unless (x == 0) print(x);`)
@@ -96,8 +96,9 @@ test bool testUnless()
  * 6. Repeat-until statement
  */
 
-Statement desugar((Statement)`repeat <Statement stat> until (<Expression cond>);`)
-  = /* you should replace this */ dummyStat();
+Statement desugar((Statement)`repeat <Statement stat> until (<Expression cond>);`) {
+	return (Statement) `do <Statement stat> while (!(<Expression cond>));`; 
+}
 
 test bool testRepeat()
   = desugar((Statement)`repeat {print(i); i--;} until (i == 0);`)
@@ -109,8 +110,9 @@ test bool testRepeat()
 
 
 Statement desugar((Statement)`assert <Expression e>: <String msg>;`) {
-  // don't forget to convert the expression to a string!
-  return /* you should replace this */ dummyStat();
+  String s =  jsString(e);
+  return (Statement)`if (!(<Expression e>))
+                '  throw "Assertion " + <String s> + " failed: " + <String msg>;`;
 }
 
 
