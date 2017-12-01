@@ -37,22 +37,41 @@ Bonus:
 
 alias SLOC = map[loc file, int sloc];
 
+
 int main() {
 	loc jpacman = |project://jpacman-framework/src|;
-	fs = crawl(jpacman);
+	//fs = crawl(jpacman);
 	return sloc(jpacman);
 }
 
 
 
 int sloc(loc project) {
-  n = 0;
-  for (file <- files(project), file.extension == "java") {
-  	println(file);
-  	n += 1;
-  }
-  return n;
-}   
+    n = 0;
+    for (loc file <- find(project, "java")) {
+        //println(readFile(file));
+        n += countCodeLinesInFile(readFile(file));
+    }
+    return n;
+}
+
+
+
+/* If we think of comments as blank lines, or "non-code" lines, then the blank lines would be:
+    (space | tab | ("/*" + anything(including '\n') + "* /"))* + ("//" + anything(exluding '\n')) + "\n" .
+    
+    A code line would be anything thats left after that.
+    */
+    
+int countCodeLinesInFile(str file) = ( 0 | it + 1 | /[\ \t(\/\*[.\n\r]*\*\/)]*(\/\/.*)?\n/ !:= file );
+
+int countCodeLinesInFile2(str file) {
+    int codeLines = 0;
+    for (/[\ \t(\/\*[.\n\r]*\*\/)]*(\/\/.*)?\n/ !:= file) {
+        codeLines += 1;
+    }
+    return codeLines;
+}
 
 void main2() {
 	xs = {1,2,3,4}; //set 
@@ -67,10 +86,10 @@ int countDirs(FileSystem fs) {
        countSubdirs += countDirs(child);
       }
       return countSubdirs + 1;
-      }
-     case file(_): 
-     	return 0;
-     	}
+    }
+    case file(_): 
+		return 0;
+    }
 
 }
 
