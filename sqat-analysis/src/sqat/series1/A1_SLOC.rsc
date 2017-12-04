@@ -50,12 +50,35 @@ int sloc(loc project) {
     n = 0;
     for (loc file <- find(project, "java")) {
         //println(readFile(file));
-        n += countCodeLinesInFile(readFile(file));
+        str codeString = removeNonCodeLinesFromString(readFile(file));
+        //println(codeString);
+        n += countLinesInString(codeString);
     }
     return n;
 }
 
+int countLinesInString(str string) {
+	return size(split("\n", string));
+}
 
+str removeNonCodeLinesFromString(str string) {	
+	if (/<pref:^.*?><comment:\/\*.*?\*\/><suffix:.*$>/s := string) { // removes /* whatever */
+		return removeNonCodeLinesFromString(pref + suffix);
+	}
+	if (/<pref:^.*?><comment:\/\/.*?\n><suffix:.*$>/s := string) { // removes // whatever \n
+		return removeNonCodeLinesFromString(pref + suffix);
+	}
+	if (/<pref:^.*?><comment:\/\/.*$>/s := string) { // removes // whatever EOF
+		return removeNonCodeLinesFromString(pref);
+	}
+	if (/<pref:^.*?\n><blankLine:\s*\n><suffix:.*$>/s := string) { // removes blank line ending with \n
+		return removeNonCodeLinesFromString(pref + suffix);
+	}
+	if (/<pref:^.*?><blankLine:\n\s*$>/s := string) { // removes blank line ending with EOF
+		return pref;
+	}
+	return string;
+}
 
 /* If we think of comments as blank lines, or "non-code" lines, then the blank lines would be:
     (space | tab | ("/*" + anything(including '\n') + "* /"))* + ("//" + anything(exluding '\n')) + "\n" .
@@ -63,11 +86,11 @@ int sloc(loc project) {
     A code line would be anything thats left after that.
     */
     
-int countCodeLinesInFile(str file) = ( 0 | it + 1 | /[\ \t(\/\*[.\n\r]*\*\/)]*(\/\/.*)?\n/ !:= file );
+int countCodeLinesInFile(loc file) = ( 0 | it + 1 | /[\ \t(\/\*[.\n\r]*?\*\/)]*?(\/\/.*?)??\n/ !:= readFile(file) );
 
-int countCodeLinesInFile2(str file) {
+int countCodeLinesInFile2(loc file) {
     int codeLines = 0;
-    for (/[\ \t(\/\*[.\n\r]*\*\/)]*(\/\/.*)?\n/ !:= file) {
+    for (/[\ \t(\/\*[.\n\r]*?\*\/)]*?(\/\/.*?)??\n/ !:= readFile(file)) {
         codeLines += 1;
     }
     return codeLines;
